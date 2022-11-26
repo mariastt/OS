@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright (c) 2022 Gerasimenko Evgeniy (evgenyger.work@gmail.com)                      *
  *                                                                             *
@@ -29,6 +28,9 @@
 #include <string.h>
 #include <wiringPi.h>
 #include <ads1115.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h> 
 
 #define AD_BASE 122
 #define AD_ADDR 0x48 //i2c address
@@ -52,6 +54,10 @@ int clamp(int x, int min, int max)
 
 int main(int argc, char *argv[])
 {
+	int range = open("gp2y_data", O_RDWR);
+	if (range  == -1)
+        return -1;
+	
 	int quiet = 0;
 	if (argc > 1) {
 		if ((strcmp(argv[1], "-h") == 0)) {
@@ -85,9 +91,11 @@ int main(int argc, char *argv[])
 		int ADC_VAL = analogRead(AD_BASE + ADC_PIN);
 		if (!quiet)
 			printf("ADC: %d \n", ADC_VAL);
-		else
-			printf("%d\n", ADC_VAL);
-
+		else{
+			if(pow(   (61.3899*(1000/(ADC_VAL*0.1875))), 1.1076) < 50 && pow(   (61.3899*(1000/(ADC_VAL*0.1875))), 1.1076) > 30 ){
+			write(range,"ok",3);
+			}else write(range,"no",3);
+		}
 		fflush(stdout);
 		usleep(1000 * delay_ms);
 	}
