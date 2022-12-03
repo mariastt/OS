@@ -114,9 +114,10 @@ void help()
 	printf("    -q - quiet\n");
 }
 
-int main(int argc, char *argv[])
+
 
 {
+
 	int keypd = open("keypad_data", O_RDWR);
 	if (keypd  == -1)
         return -1;
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+	
 	if (argc < 2) {
 		help();
 		return (-1);
@@ -157,46 +159,63 @@ int main(int argc, char *argv[])
 	arg_N++;
 	char keystr = ' ';
 	while(1){
+
 		char buffer1[16];
-		char buffer2[16];
+		
 		read(keypd, buffer1, sizeof(buffer1));
-		read(range, buffer2, sizeof(buffer2));
+		
+		
 		if(buffer1[0]== 'p'){ 
- 			if((buffer1[9]== '*')&&(strcmp(buffer2, "ok"))){
-				angle = (int)keystr;
-				if (angle < 0)
-					rotate_dir = 0;
-				else
-					rotate_dir = 1;
-				if ((step_delay < 0) || (step_delay > 20))
-					step_delay = STEP_DELAY;
+			
+ 			if(buffer1[9]== '*'){
+				while(1){
+					char buffer2[16];
+					read(range, buffer2, sizeof(buffer2));
+					
+					
+						
+						angle = (int)keystr;
+						printf("%d", angle);
+						if (angle < 0)
+							rotate_dir = 0;
+						else
+							rotate_dir = 1;
+						if ((step_delay < 0) || (step_delay > 20))
+							step_delay = STEP_DELAY;
 
-				if (!bcm2835_init())
-					return 1;
+						if (!bcm2835_init())
+							return 1;
 
-				bcm2835_gpio_fsel(Pin1, BCM2835_GPIO_FSEL_OUTP);
-				bcm2835_gpio_fsel(Pin2, BCM2835_GPIO_FSEL_OUTP);
-				bcm2835_gpio_fsel(Pin3, BCM2835_GPIO_FSEL_OUTP);
-				bcm2835_gpio_fsel(Pin4, BCM2835_GPIO_FSEL_OUTP);
+						bcm2835_gpio_fsel(Pin1, BCM2835_GPIO_FSEL_OUTP);
+						bcm2835_gpio_fsel(Pin2, BCM2835_GPIO_FSEL_OUTP);
+						bcm2835_gpio_fsel(Pin3, BCM2835_GPIO_FSEL_OUTP);
+						bcm2835_gpio_fsel(Pin4, BCM2835_GPIO_FSEL_OUTP);
 
-				int intang = abs(angle) * 11.377;
-				if (rotate_dir)
-					step = 7;
-				for (i = 0; i < intang; i++)
-					if (rotate_dir) {
-						loop();
-						step--;
-						if (step < 0)
+						int intang = abs(angle) * 11.377;
+						if (rotate_dir)
 							step = 7;
-						bcm2835_delay(step_delay);
-					} else {
-						loop();
-						step++;
-						if (step > 7)
-							step = 0;
-						bcm2835_delay(step_delay);
+						for (i = 0; i < intang; i++)
+							if (rotate_dir) {
+								loop();
+								step--;
+								if (step < 0)
+									step = 7;
+								bcm2835_delay(step_delay);
+							} else {
+								loop();
+								step++;
+								if (step > 7)
+									step = 0;
+								bcm2835_delay(step_delay);
+						}
+						break;
+					}
+
 				}
-			}else keystr = keystr + buffer1[9];
+			}else keystr =  (buffer1[9]-48) *10;
+			//keystr = (char)keystr + (char)(buffer1[9]);
+			//printf("%d\n",(int)keystr);
+			
 			
 		}
 	}
