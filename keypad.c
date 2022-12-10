@@ -23,51 +23,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pigpio.h>
+#include <bcm2835.h>
 #define ROWS 4
 #define COLS 3
 
 char pressedKey = '\0';
-
-#define VAR10
-
 #ifdef VAR6
-int rowPins[ROWS] = { 18, 17, 16, 25 }; // R0, R1, R2, R3				
-int colPins[COLS] = { 20, 21, 19 };  // C0, C1, C2				
+int rowPins[ROWS] = { 18, 17, 16, 25 }; // R0, R1, R2, R3
+int colPins[COLS] = { 20, 21, 19 }; // C0, C1, C2
 #endif
 
 #ifdef VAR8
-int rowPins[ROWS] = { 4, 25, 11, 8 }; // R0, R1, R2, R3	
+int rowPins[ROWS] = { 4, 25, 11, 8 }; // R0, R1, R2, R3
 int colPins[COLS] = { 7, 6, 5 }; // C0, C1, C2
 #endif
 
 #ifdef VAR10
-int rowPins[ROWS] = { 18, 17, 16, 25 }; // R0, R1, R2, R3				
-int colPins[COLS] = { 20, 21, 19 };  // C0, C1, C2			
+int rowPins[ROWS] = { 18, 17, 16, 25 }; // R0, R1, R2, R3
+int colPins[COLS] = { 20, 21, 19 }; // C0, C1, C2
 #endif
 
+
 char keys[ROWS][COLS] = { { '1', '2', '3' },
-			  			  { '4', '5', '6' },
-			  			  { '7', '8', '9' },
-			  			  { '*', '0', '#' } };
+			  { '4', '5', '6' },
+			  { '7', '8', '9' },
+			  { '*', '0', '#' } };
 
 void init_keypad()
 {
 	for (int c = 0; c < COLS; c++) {
-		gpioSetMode(colPins[c], PI_INPUT);
-		gpioWrite(colPins[c], 0);
+		bcm2835_gpio_fsel(colPins[c], BCM2835_GPIO_FSEL_INPT);
+		bcm2835_gpio_write(colPins[c], LOW);
 	}
 
 	for (int r = 0; r < ROWS; r++) {
-		gpioSetMode(rowPins[r], PI_OUTPUT);
-		gpioWrite(rowPins[r], 1);
+		bcm2835_gpio_fsel(rowPins[r], BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_write(rowPins[r], HIGH);
 	}
 }
 
 int findHighCol()
 {
 	for (int c = 0; c < COLS; c++) {
-		if (gpioRead(colPins[c]) == 1)
+		if (bcm2835_gpio_lev(colPins[c]) == 1)
 			return c;
 	}
 	return -1;
@@ -76,18 +74,16 @@ int findHighCol()
 char get_key()
 {
 	int colIndex;
-
 	for (int r = 0; r < ROWS; r++) {
-		gpioWrite(rowPins[r], 1);
+		bcm2835_gpio_write(rowPins[r], HIGH);
 		colIndex = findHighCol();
 		if (colIndex > -1) {
 			if (!pressedKey)
 				pressedKey = keys[r][colIndex];
 			return pressedKey;
 		}
-		gpioWrite(rowPins[r], 0);
+		bcm2835_gpio_write(rowPins[r], LOW);
 	}
-
 	pressedKey = '\0';
 	return pressedKey;
 }
@@ -115,20 +111,25 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
-	gpioInitialise();
+	bcm2835_init();
 	init_keypad();
+	if (!quiet)
+		system("clear");
 	while (1) {
 		char x = get_key();
 		if (x) {
-			if (!quiet)
+			if (!quiet) {
+				system("clear");
 				printf("pressed: %c\n", x);
-			else
+			} else
 				printf("%c\n", x);
-		} else if (!quiet)
+		} else if (!quiet) {
+			system("clear");
 			printf("no key pressed\n");
-		time_sleep(0.5);
+		}
+		bcm2835_delay(500);
 		fflush(stdout);
 	}
-	gpioTerminate();
+	bcm2835_close();
 	return 0;
 }

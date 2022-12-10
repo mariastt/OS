@@ -17,7 +17,7 @@ int keypd = open("keypad_data", O_RDWR);
 	if (keypd  == -1)
         return -1;
 	
-	int range = open("gp2y_data", O_RDWR);
+int range = open("gp2y_data", O_RDWR);
 	if (range  == -1)
         return -1;
 
@@ -33,20 +33,28 @@ char *sym = (char*)malloc(1);
 while(1)
 {
 	read(keypd, buffer1, sizeof(buffer1));
-	*sym = buffer1[9];
-    if(buffer1[0]== 'p'){ 
-	
- 		if(buffer1[9]== '*')
+	*sym = buffer1[0];
+    char buffer[16];
+        
+ 		if(buffer1[0]== '*')
         {
-            printf("pressed *: ");
+            //printf("pressed *: ");
             while(1){
                 char buffer2[16];
             	read(range, buffer2, sizeof(buffer2));
 
                 if(buffer2[0]== 'o'){
-                printf(":расстояние: (разрешено)");
-                
+                time_t rawtime;
+                struct tm * timeinfo;
+
+                time ( &rawtime );
+                timeinfo = localtime ( &rawtime );
+                printf("время изменения положения двигателя: %s", asctime (timeinfo));
+                printf("угол установлен на: %d\n",atoi(str)%1000);
                 write(stepmot,str,15);
+		        //read(stepmot, buffer, sizeof(buffer));
+               // printf("время время окончания движения: %s", asctime (timeinfo));
+
                 break;
                 }
 
@@ -55,10 +63,10 @@ while(1)
 		}else strcat(str, sym);
         
         
-        printf("%d\n",atoi(str)%1000);
+        //printf("%d\n",atoi(str));
         if(atoi(str)%1000== 647)
         *str = 0;
-        }
+        
 
 }
 

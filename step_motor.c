@@ -115,15 +115,11 @@ void help()
 }
 
 
-
+int main(int argc, char *argv[])
 {
 
-	int keypd = open("keypad_data", O_RDWR);
-	if (keypd  == -1)
-        return -1;
-	
-	int range = open("gp2y_data", O_RDWR);
-	if (range  == -1)
+	int stepmot = open("step_data", O_RDWR);
+	if (stepmot  == -1)
         return -1;
 	
 
@@ -160,21 +156,12 @@ void help()
 	char keystr = ' ';
 	while(1){
 
-		char buffer1[16];
+		char buffer[16];
 		
-		read(keypd, buffer1, sizeof(buffer1));
+		read(stepmot, buffer, sizeof(buffer));
+		angle = atoi(buffer)%1000;
 		
 		
-		if(buffer1[0]== 'p'){ 
-			
- 			if(buffer1[9]== '*'){
-				while(1){
-					char buffer2[16];
-					read(range, buffer2, sizeof(buffer2));
-					
-					
-						
-						angle = (int)keystr;
 						printf("%d", angle);
 						if (angle < 0)
 							rotate_dir = 0;
@@ -194,7 +181,8 @@ void help()
 						int intang = abs(angle) * 11.377;
 						if (rotate_dir)
 							step = 7;
-						for (i = 0; i < intang; i++)
+						for (i = 0; i < intang; i++){
+
 							if (rotate_dir) {
 								loop();
 								step--;
@@ -207,17 +195,14 @@ void help()
 								if (step > 7)
 									step = 0;
 								bcm2835_delay(step_delay);
+							}
 						}
-						break;
-					}
-
-				}
-			}else keystr =  (buffer1[9]-48) *10;
+			//write(stepmot," \n",1);
 			//keystr = (char)keystr + (char)(buffer1[9]);
 			//printf("%d\n",(int)keystr);
 			
 			
-		}
+		
 	}
 bcm2835_close();
 }

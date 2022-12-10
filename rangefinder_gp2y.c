@@ -93,10 +93,11 @@ int main(int argc, char *argv[])
 			printf("ADC: %d \n", ADC_VAL);
 		else{
 			double rez = pow(   (61.3899*(1000/(ADC_VAL*0.1875))), 1.1076);
-			printf("%f\n", rez);
+			//printf("%f\n", rez);
 			if(pow(   (61.3899*(1000/(ADC_VAL*0.1875))), 1.1076) < 100 && pow(   (61.3899*(1000/(ADC_VAL*0.1875))), 1.1076) > 30 ){
 			write(range,"ok\n",3);
-			}else write(range,"no\n",3);
+			
+			}//else write(range,"no\n",3);
 		}
 		fflush(stdout);
 		usleep(1000 * delay_ms);
