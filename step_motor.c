@@ -159,10 +159,12 @@ int main(int argc, char *argv[])
 		char buffer[16];
 		
 		read(stepmot, buffer, sizeof(buffer));
+		if(buffer[0]=='s')return 0;
+		
 		angle = atoi(buffer)%1000;
 		
 		
-						printf("%d", angle);
+						
 						if (angle < 0)
 							rotate_dir = 0;
 						else
